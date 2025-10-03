@@ -1,31 +1,45 @@
 import { useEffect, useState } from 'react';
 import { addTodo, getTodos, updateTodo, deleteTodo } from './db';
+import { subscribeToPush, scheduleNotification } from "./utils/notifications";
 
 interface Todo {
     id: number;
     title: string;
     completed: boolean;
+    dueDate?: string; // ISO string for scheduled time
 }
 
 export default function TodoApp() {
     const [todos, setTodos] = useState<Todo[]>([]);
     const [newTodo, setNewTodo] = useState('');
+    const [dueDate, setDueDate] = useState('');
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editingText, setEditingText] = useState('');
 
     useEffect(() => {
         fetchTodos();
+        subscribeToPush(); // request push permission & subscribe user
     }, []);
 
     const fetchTodos = async () => {
         const allTodos = await getTodos();
         setTodos(allTodos);
+
+        // Schedule notifications for all todos with dueDate
+        allTodos.forEach(todo => {
+            if (todo.dueDate) {
+                scheduleNotification(todo);
+            }
+        });
     };
 
     const handleAdd = async () => {
         if (!newTodo.trim()) return;
-        await addTodo({ title: newTodo, completed: false });
+
+        const todoObj: Omit<Todo, 'id'> = { title: newTodo, completed: false, dueDate: dueDate || undefined };
+        await addTodo(todoObj);
         setNewTodo('');
+        setDueDate('');
         fetchTodos();
     };
 
@@ -46,7 +60,8 @@ export default function TodoApp() {
 
     const handleUpdate = async (id: number) => {
         if (!editingText.trim()) return;
-        await updateTodo({ id, title: editingText, completed: todos.find(t => t.id === id)!.completed });
+        const todo = todos.find(t => t.id === id)!;
+        await updateTodo({ id, title: editingText, completed: todo.completed, dueDate: todo.dueDate });
         setEditingId(null);
         setEditingText('');
         fetchTodos();
@@ -55,12 +70,19 @@ export default function TodoApp() {
     return (
         <div className="todo-container">
             <h1>ToDo App</h1>
+
             <div className="todo-input">
                 <input
                     type="text"
                     value={newTodo}
                     onChange={e => setNewTodo(e.target.value)}
                     placeholder="Enter new todo"
+                />
+                <input
+                    type="datetime-local"
+                    value={dueDate}
+                    onChange={e => setDueDate(e.target.value)}
+                    placeholder="Set reminder"
                 />
                 <button onClick={handleAdd}>Add</button>
             </div>
@@ -90,6 +112,11 @@ export default function TodoApp() {
                                     onDoubleClick={() => handleEdit(todo)}
                                 >
                                     {todo.title}
+                                    {todo.dueDate && (
+                                        <small style={{ marginLeft: 8 }}>
+                                            ⏰ {new Date(todo.dueDate).toLocaleString()}
+                                        </small>
+                                    )}
                                 </span>
                             )}
                         </div>
