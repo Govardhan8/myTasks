@@ -10,14 +10,17 @@ export const initDB = async () => {
   return openDB(DB_NAME, DB_VERSION, {
     upgrade(db) {
       if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+        // Add indexes for filtering/search if needed
+        store.createIndex('completed', 'completed');
+        store.createIndex('dueDate', 'dueDate');
       }
     }
   });
 };
 
 // Add a todo
-export const addTodo = async (todo: { title: string; completed: boolean }) => {
+export const addTodo = async (todo: { title: string; completed: boolean; dueDate?: string }) => {
   const db = await initDB();
   return db.add(STORE_NAME, todo);
 };
@@ -29,7 +32,7 @@ export const getTodos = async () => {
 };
 
 // Update a todo
-export const updateTodo = async (todo: { id: number; title: string; completed: boolean }) => {
+export const updateTodo = async (todo: { id: number; title: string; completed: boolean; dueDate?: string }) => {
   const db = await initDB();
   return db.put(STORE_NAME, todo);
 };
