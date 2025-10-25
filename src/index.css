@@ -44,7 +44,8 @@ body {
   width: 100%;
   padding: 0.5rem 0;
   border: 1px solid #ccc;
-  color: #ccc;
+  color: gray;
+  background-color: white;
 }
 
 .submitBtn {
