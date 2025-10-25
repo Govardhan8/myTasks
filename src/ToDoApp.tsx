@@ -69,8 +69,7 @@ export default function TodoApp() {
 
     return (
         <div className="todo-container">
-            <h1>ToDo App</h1>
-
+            <h1>My tasks</h1>
             <div className="todo-input">
                 <input
                     type="text"
@@ -78,19 +77,21 @@ export default function TodoApp() {
                     onChange={e => setNewTodo(e.target.value)}
                     placeholder="Enter new todo"
                 />
+            </div>
+            <div>
                 <input
+                    className='calender'
                     type="datetime-local"
                     value={dueDate}
                     onChange={e => setDueDate(e.target.value)}
                     placeholder="Set reminder"
                 />
-                <button onClick={handleAdd}>Add</button>
             </div>
-
+            <button className='submitBtn' onClick={handleAdd}>Add</button>
             <ul className="todo-list">
                 {todos.map(todo => (
                     <li key={todo.id}>
-                        <div>
+                        <div className='todo-item'>
                             <input
                                 type="checkbox"
                                 checked={todo.completed}
@@ -108,7 +109,7 @@ export default function TodoApp() {
                                 />
                             ) : (
                                 <span
-                                    className={todo.completed ? 'completed' : ''}
+                                    className={`content ${todo.completed ? 'completed' : ''} `}
                                     onDoubleClick={() => handleEdit(todo)}
                                 >
                                     {todo.title}
@@ -120,7 +121,6 @@ export default function TodoApp() {
                                 </span>
                             )}
                         </div>
-
                         <button className="delete-btn" onClick={() => handleDelete(todo.id)}>X</button>
                     </li>
                 ))}
